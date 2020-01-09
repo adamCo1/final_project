@@ -40,7 +40,7 @@ class GeneticSelector():
     # TODO find good enough parameters :  n_gen size, n_best n_rand, n_children mutation_rate
     def __init__(self, estimator, num_of_generations, num_of_chromosomes,  num_best_chromosomes, num_rand_chromosomes,
                  num_crossover_children, operator_probability):
-        self.estimator = estimator
+        self.estimator = estimator(dataset)
         self.num_of_generations = num_of_generations
         self.num_of_chromosomes = num_of_chromosomes
         self.num_best_chromosomes = num_best_chromosomes
@@ -73,6 +73,7 @@ class GeneticSelector():
                 score = -1.0 * np.mean(cross_val_score(self.estimator, X[:,chromosome], y,
                                         cv=5,
                                         scoring="neg_mean_squared_error"))
+                score = estimator.calculate_score(chromsome)
                 scores.append(score)
             else:
                 scores.append(0)

@@ -153,21 +153,21 @@ class GeneticSelector():
     def __should_apply_operator__(self):
         return random.random() < self.operator_probability
 
-def main():
-    dataset = load_boston()
-    data_vector, target_vector = dataset.data, dataset.target
-    features = dataset.feature_names
-    for i in range(20):
-        selector = GeneticSelector(estimator = LinearRegression(),
-                                   num_of_generations = 70,
-                                   num_of_chromosomes = 200,
-                                   num_best_chromosomes = 40,
-                                   num_rand_chromosomes = 40,
-                                   num_crossover_children = 5,
-                                   operator_probability = 0.1)
-        selector.fit(data_vector, target_vector)
-        best_features = selector.chromosomes_best[0]
-        print(i,best_features)
-
-
-main()
+# def main():
+#     dataset = load_boston()
+#     data_vector, target_vector = dataset.data, dataset.target
+#     features = dataset.feature_names
+#     for i in range(20):
+#         selector = GeneticSelector(estimator = LinearRegression(),
+#                                    num_of_generations = 70,
+#                                    num_of_chromosomes = 200,
+#                                    num_best_chromosomes = 40,
+#                                    num_rand_chromosomes = 40,
+#                                    num_crossover_children = 5,
+#                                    operator_probability = 0.1)
+#         selector.fit(data_vector, target_vector)
+#         best_features = selector.chromosomes_best[0]
+#         print(i,best_features)
+#
+#
+# main()

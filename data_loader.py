@@ -31,5 +31,14 @@ class data_processing():
         self.clear_na()
         self.caterogical_to_numeric()
         self.discritsize_columns()
-        return self.dataset
+        self.base_features =self.dataset.loc[:,"0":"9"]
+        # print(self.base_features)
+        self.classes = self.dataset.loc[:,"30"]
+        # print(self.classes)
+        # self.dataset = pd.concat([self.base_features,self.classes])
+        # print(self.dataset)
+        return self.base_features, self.classes
 
+# dp = data_processing("wdbc.csv",",",5)
+# ds = dp.prepare_data()
+# # print(ds)

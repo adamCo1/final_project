@@ -2,6 +2,7 @@ import random
 import numpy as np
 import pandas as pd
 import sklearn.metrics
+from operator import itemgetter
 SEED = 2018
 random.seed(SEED)
 np.random.seed(SEED)
@@ -84,9 +85,10 @@ class GeneticSelector():
 
     # TODO fitness calculation function
     def fitness(self, population):
+         sorted_scores = None
          X, y = self.dataset
          scores = []
-         for index, chromosome in enumerate(population):
+         for chromosome_index, chromosome in enumerate(population):
             columns_mask = []
             for index, value in enumerate(chromosome):
                 if value == True:
@@ -94,25 +96,34 @@ class GeneticSelector():
             data_to_fit = X[columns_mask]
             if data_to_fit.shape[1] > 0 :
                 score = self.estimator.calculate_score(columns_mask)
-                scores.append(score)
+                scores.append([chromosome_index,score])
             else:
-                scores.append(0)
+                scores.append([chromosome_index,0])
+         self.__sort_best__(scores, population)
+         scores.sort(key=itemgetter(1), reverse=True)
 
-         scores, population = np.array(scores), np.array(population)
-         inds = np.argsort(scores)
-         return list(scores[inds]), list(population[inds,:])
+         return scores, population
 
-    def select_best_chromosomes(self, population_sorted):
+    def __sort_best__(self, scores, population):
+        return
+
+    def select_best_chromosomes(self, scores_sorted, population_sorted):
         population_next = []
-        for index in range(self.num_best_chromosomes):
-            population_next.append(population_sorted[index])
+        #index = 0
+        for chromosome_num in range(self.num_best_chromosomes):
+            count = 0
+            population_next.append(population_sorted[scores_sorted[chromosome_num][0]])
+           # for i in population_sorted[chromosome_num]:
+           #     if i == True:
+           #         count += 1
+           # print(chromosome_num, count)
+           # index += 1
         for i in range(self.num_rand_chromosomes):
             population_next.append(random.choice(population_sorted))
         random.shuffle(population_next)
         return population_next
 
     def crossover(self, population):
-        # TODO : no reason for O(N^2). implement in other way
         population_next = []
         for i in range(int(len(population) / 2)):
             for j in range(self.num_crossover_children ):
@@ -135,8 +146,8 @@ class GeneticSelector():
 
     def generate_population(self, population):
         # Selection, crossover and mutation
-        scores_sorted, population_sorted = self.fitness(population)
-        population = self.select_best_chromosomes(population_sorted)
+        sorted_scores, population = self.fitness(population)
+        population = self.select_best_chromosomes(sorted_scores, population)
         #if(self.__should_apply_operator__()):
         #population = self.__duplicate_chromosomes__(population)
         #if(self.__should_apply_operator__()):
@@ -144,10 +155,10 @@ class GeneticSelector():
         #if(self.__should_apply_operator__()):
         population = self.mutate(population)
         # History
-        self.chromosomes_best.append(population_sorted[0])
-        self.scores_best.append(scores_sorted[0])
-        self.scores_avg.append(np.mean(scores_sorted))
-
+        #self.chromosomes_best.append(population_sorted[0])
+        #self.scores_best.append(scores_sorted[0])
+        #self.scores_avg.append(np.mean(scores_sorted))
+        self.best = population[0:40]
         return population
 
     def __duplicate_chromosomes__(self, population):
@@ -178,7 +189,7 @@ def main():
     data_vector, target_vector, features_names = data_df[data_df.columns[1:-1]], data_df[data_df.columns[-1]], list(data_df.columns.values)
     for i in range(20):
         selector = GeneticSelector(estimator = Mutual_Information_Estimator(data_vector, target_vector, features_names),
-                                   num_of_generations = 100,
+                                   num_of_generations = 20,
                                    num_of_chromosomes = 200,
                                    num_best_chromosomes = 70,
                                    num_rand_chromosomes = 10,
@@ -186,7 +197,7 @@ def main():
                                    features_names = features_names[1:-1],
                                    operator_probability = 0.1)
         selector.fit(data_vector, target_vector)
-        best_features = selector.chromosomes_best[0]
+        best_features = selector.best[0]
         print(i,best_features)
 
 

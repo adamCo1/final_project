@@ -33,8 +33,3 @@ class data_processing():
         self.discritsize_columns()
         return self.dataset
 
-
-dp = data_processing("wdbc.csv",sep=",",number_of_bins=5)
-ans = dp.prepare_data()
-print(ans)
- a null")

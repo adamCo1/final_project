@@ -94,44 +94,31 @@ class GeneticSelector():
                 if value == True:
                     columns_mask.append(self.features_names[index])
             data_to_fit = X[columns_mask]
-            if data_to_fit.shape[1] > 0 :
-                score = self.estimator.calculate_score(columns_mask)
-                scores.append([chromosome_index,score])
-            else:
-                scores.append([chromosome_index,0])
-         self.__sort_best__(scores, population)
+            score = self.estimator.calculate_score(columns_mask)
+            scores.append([chromosome_index,score])
          scores.sort(key=itemgetter(1), reverse=True)
 
          return scores, population
 
-    def __sort_best__(self, scores, population):
-        return
-
     def select_best_chromosomes(self, scores_sorted, population_sorted):
         population_next = []
-        #index = 0
         for chromosome_num in range(self.num_best_chromosomes):
             count = 0
             population_next.append(population_sorted[scores_sorted[chromosome_num][0]])
-           # for i in population_sorted[chromosome_num]:
-           #     if i == True:
-           #         count += 1
-           # print(chromosome_num, count)
-           # index += 1
         for i in range(self.num_rand_chromosomes):
             population_next.append(random.choice(population_sorted))
-        random.shuffle(population_next)
         return population_next
 
     def crossover(self, population):
-        population_next = []
-        for i in range(int(len(population) / 2)):
-            for j in range(self.num_crossover_children ):
-                chromosome1, chromosome2 = population[i], population[len(population) - 1 - i]
-                child = chromosome1
-                mask = np.random.rand(len(child)) > 0.8
-                child[mask] = chromosome2[mask]
-                population_next.append(child)
+        population_next = population
+        while(len(population_next) < self.num_of_chromosomes):
+            for i in range(int(len(population_next) / 2), len(population)):
+                for j in range(self.num_crossover_children ):
+                    chromosome1, chromosome2 = population[i], population[len(population) - 1 - j]
+                    child = chromosome1
+                    mask = np.random.rand(len(child)) > 0.7
+                    child[mask] = chromosome2[mask]
+                    population_next.append(child)
         return population_next
 
     def mutate(self, population):
@@ -139,8 +126,9 @@ class GeneticSelector():
         population_next = []
         for i in range(len(population)):
             chromosome = population[i]
-            mask = np.random.rand(len(chromosome)) < 0.1
-            chromosome[mask] = False
+            if(self.__should_apply_operator__()):
+                mask = np.random.rand(len(chromosome)) < 0.3
+                chromosome[mask] = False
             population_next.append(chromosome)
         return population_next
 
@@ -153,12 +141,13 @@ class GeneticSelector():
         #if(self.__should_apply_operator__()):
         population = self.crossover(population)
         #if(self.__should_apply_operator__()):
-        population = self.mutate(population)
+        #population = self.mutate(population)
         # History
         #self.chromosomes_best.append(population_sorted[0])
         #self.scores_best.append(scores_sorted[0])
         #self.scores_avg.append(np.mean(scores_sorted))
-        self.best = population[0:40]
+        print(sorted_scores[0][1])
+        self.best = population[0]
         return population
 
     def __duplicate_chromosomes__(self, population):
@@ -188,8 +177,9 @@ def main():
     data_df = pd.read_csv('wdbc.csv', sep=',')
     data_vector, target_vector, features_names = data_df[data_df.columns[1:-1]], data_df[data_df.columns[-1]], list(data_df.columns.values)
     for i in range(20):
-        selector = GeneticSelector(estimator = Mutual_Information_Estimator(data_vector, target_vector, features_names),
-                                   num_of_generations = 20,
+        mu = Mutual_Information_Estimator(data_vector, target_vector, features_names)
+        selector = GeneticSelector(estimator = mu,
+                                   num_of_generations = 10,
                                    num_of_chromosomes = 200,
                                    num_best_chromosomes = 70,
                                    num_rand_chromosomes = 10,
@@ -197,8 +187,13 @@ def main():
                                    features_names = features_names[1:-1],
                                    operator_probability = 0.1)
         selector.fit(data_vector, target_vector)
-        best_features = selector.best[0]
-        print(i,best_features)
+        best_features = selector.best
+        columns_mask = []
+        for index, value in enumerate(best_features):
+            if value == True:
+                columns_mask.append(data_df.columns.values[1:-1][index])
+        best_score = mu.calculate_score(columns_mask)
+        print(i, best_features, best_score)
 
 
 main()

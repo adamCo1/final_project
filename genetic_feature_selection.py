@@ -119,6 +119,8 @@ class GeneticSelector():
                     mask = np.random.rand(len(child)) > 0.7
                     child[mask] = chromosome2[mask]
                     population_next.append(child)
+                    if(len(population_next) == self.num_of_chromosomes):
+                        return population_next
         return population_next
 
     def mutate(self, population):
@@ -126,9 +128,10 @@ class GeneticSelector():
         population_next = []
         for i in range(len(population)):
             chromosome = population[i]
-            if(self.__should_apply_operator__()):
-                mask = np.random.rand(len(chromosome)) < 0.3
-                chromosome[mask] = False
+            if(i > self.num_best_chromosomes):
+                if(self.__should_apply_operator__()):
+                    mask = np.random.rand(len(chromosome)) < 0.3
+                    chromosome[mask] = True
             population_next.append(chromosome)
         return population_next
 
@@ -136,19 +139,22 @@ class GeneticSelector():
         # Selection, crossover and mutation
         sorted_scores, population = self.fitness(population)
         population = self.select_best_chromosomes(sorted_scores, population)
-        #if(self.__should_apply_operator__()):
-        #population = self.__duplicate_chromosomes__(population)
-        #if(self.__should_apply_operator__()):
         population = self.crossover(population)
-        #if(self.__should_apply_operator__()):
-        #population = self.mutate(population)
-        # History
-        #self.chromosomes_best.append(population_sorted[0])
-        #self.scores_best.append(scores_sorted[0])
-        #self.scores_avg.append(np.mean(scores_sorted))
+        population = self.mutate(population)
         print(sorted_scores[0][1])
-        self.best = population[0]
+        self.__get_best_names__(population);
         return population
+
+    def __get_best_names__(self, best_population):
+        self.best_features = []
+        for index, chromosome in enumerate(best_population):
+            if chromosome not in self.best_features:
+                names = []
+                for feature_index, feature in enumerate(chromosome):
+                    if feature == True :
+                        names.append(self.features_names[feature_index])
+                self.best_features.append(names)
+
 
     def __duplicate_chromosomes__(self, population):
         next_population = population
@@ -185,15 +191,9 @@ def main():
                                    num_rand_chromosomes = 10,
                                    num_crossover_children = 5,
                                    features_names = features_names[1:-1],
-                                   operator_probability = 0.1)
+                                   operator_probability = 0.05)
         selector.fit(data_vector, target_vector)
-        best_features = selector.best
-        columns_mask = []
-        for index, value in enumerate(best_features):
-            if value == True:
-                columns_mask.append(data_df.columns.values[1:-1][index])
-        best_score = mu.calculate_score(columns_mask)
-        print(i, best_features, best_score)
+        print(i, selector.best_features)
 
 
 main()

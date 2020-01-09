@@ -148,11 +148,11 @@ class GeneticSelector():
     def __get_best_names__(self, best_population):
         self.best_features = []
         for index, chromosome in enumerate(best_population):
-            if chromosome not in self.best_features:
-                names = []
-                for feature_index, feature in enumerate(chromosome):
-                    if feature == True :
-                        names.append(self.features_names[feature_index])
+            names = []
+            for feature_index, feature in enumerate(chromosome):
+                if feature == True:
+                    names.append(self.features_names[feature_index])
+            if names not in self.best_features:
                 self.best_features.append(names)
 
 

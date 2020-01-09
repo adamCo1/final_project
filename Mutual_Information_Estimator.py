@@ -23,10 +23,10 @@ class Mutual_Information_Estimator():
         return total_score
 
 
-# wdbc_df = pd.read_csv("wdbc.csv",sep = ",")
-# mi = Mutual_Information_Estimator(wdbc_df)
-# features_name = ['1','5','4','23']
-# features = mi.dataset.loc[:,"0":"29"]
-# classes = mi.dataset.loc[:,"30"]
-# score = mi.calculate_score(features_name)
-# print(score)
+wdbc_df = pd.read_csv("wdbc.csv",sep = ",")
+mi = Mutual_Information_Estimator(wdbc_df)
+features_name = ['1','5','4','23']
+features = mi.dataset.loc[:,"0":"29"]
+classes = mi.dataset.loc[:,"30"]
+score = mi.calculate_score(features_name)
+print(score)

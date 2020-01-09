@@ -1,11 +1,7 @@
 import random
 import numpy as np
-import matplotlib.pyplot as plt
-
-from sklearn.datasets import load_boston
-from sklearn.model_selection import cross_val_score
-from sklearn.linear_model import LinearRegression
-
+import pandas as pd
+import sklearn.metrics
 SEED = 2018
 random.seed(SEED)
 np.random.seed(SEED)
@@ -36,11 +32,34 @@ np.random.seed(SEED)
 # ==============================================================================
 # Class performing feature selection with genetic algorithm
 # ==============================================================================
+
+class Mutual_Information_Estimator():
+
+    def __init__(self, dataset, target, features_names):
+        self.dataset = dataset
+        self.features_vectors = dataset
+        self.class_vector = target
+        self.features_names = features_names
+
+    def calculate_score(self, features_names):
+        total_score = 0
+        for feature in features_names:
+            total_score = total_score + sklearn.metrics.mutual_info_score(
+                self.class_vector, self.features_vectors[feature], contingency=None)
+        return total_score
+
+
+
+
+
+
+
 class GeneticSelector():
     # TODO find good enough parameters :  n_gen size, n_best n_rand, n_children mutation_rate
     def __init__(self, estimator, num_of_generations, num_of_chromosomes,  num_best_chromosomes, num_rand_chromosomes,
-                 num_crossover_children, operator_probability):
-        self.estimator = estimator(dataset)
+                 num_crossover_children, features_names, operator_probability):
+        self.estimator = estimator
+        self.features_names = features_names
         self.num_of_generations = num_of_generations
         self.num_of_chromosomes = num_of_chromosomes
         self.num_best_chromosomes = num_best_chromosomes
@@ -68,12 +87,13 @@ class GeneticSelector():
          X, y = self.dataset
          scores = []
          for index, chromosome in enumerate(population):
-            data_to_fit = X[:, chromosome]
+            columns_mask = []
+            for index, value in enumerate(chromosome):
+                if value == True:
+                    columns_mask.append(self.features_names[index])
+            data_to_fit = X[columns_mask]
             if data_to_fit.shape[1] > 0 :
-                score = -1.0 * np.mean(cross_val_score(self.estimator, X[:,chromosome], y,
-                                        cv=5,
-                                        scoring="neg_mean_squared_error"))
-                score = estimator.calculate_score(chromsome)
+                score = self.estimator.calculate_score(columns_mask)
                 scores.append(score)
             else:
                 scores.append(0)
@@ -154,16 +174,16 @@ class GeneticSelector():
         return random.random() < self.operator_probability
 
 def main():
-    dataset = load_boston()
-    data_vector, target_vector = dataset.data, dataset.target
-    features = dataset.feature_names
+    data_df = pd.read_csv('wdbc.csv', sep=',')
+    data_vector, target_vector, features_names = data_df[data_df.columns[1:-1]], data_df[data_df.columns[-1]], list(data_df.columns.values)
     for i in range(20):
-        selector = GeneticSelector(estimator = LinearRegression(),
-                                   num_of_generations = 70,
+        selector = GeneticSelector(estimator = Mutual_Information_Estimator(data_vector, target_vector, features_names),
+                                   num_of_generations = 100,
                                    num_of_chromosomes = 200,
-                                   num_best_chromosomes = 40,
-                                   num_rand_chromosomes = 40,
+                                   num_best_chromosomes = 70,
+                                   num_rand_chromosomes = 10,
                                    num_crossover_children = 5,
+                                   features_names = features_names[1:-1],
                                    operator_probability = 0.1)
         selector.fit(data_vector, target_vector)
         best_features = selector.chromosomes_best[0]

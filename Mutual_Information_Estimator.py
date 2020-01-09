@@ -29,4 +29,5 @@ features_name = ['1','5','4','23']
 features = mi.dataset.loc[:,"0":"29"]
 classes = mi.dataset.loc[:,"30"]
 score = mi.calculate_score(features_name)
+print(mi.dataset.dtypes)
 print(score)

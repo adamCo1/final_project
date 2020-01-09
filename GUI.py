@@ -42,7 +42,7 @@ import csv
 
 
 # def prepare_network_from_file(model_path):
-#     model = load_model(model_path)
+#     model = load_model(model_path)s
 #     return model
 
 #
